@@ -24,4 +24,8 @@ public class Individuo implements Comparable<Individuo>{
 			return 1;
 		return 0;
 	}
+	
+	public String toString(){
+		return "Aptidão: " + aptidao;
+	}
 }

@@ -46,6 +46,8 @@ public class problemaDasSacolas {
 		int qtd_sacolas = 3;
 		int qtd_itens = 30;
 		
+		Random rand = new Random();
+		System.out.println(rand.nextInt(10));
 		problemaDasSacolas problema = new problemaDasSacolas(qtd_sacolas, qtd_itens, pesos_possiveis, capacidades);
 		System.out.println(problema.itens);
 		

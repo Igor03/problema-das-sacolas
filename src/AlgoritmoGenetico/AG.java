@@ -14,6 +14,7 @@ public class AG {
 	public int qtd_geracoes;
 	public int qtd_individuos;
 	public LinkedList<Individuo> populacao = new LinkedList<>();
+	public LinkedList<Individuo> novaPopulacao = new LinkedList<>();
 	Random rand = new Random();
 
 	public AG(problemaDasSacolas problema, int qtd_geracoes, int qtd_individuos) {
@@ -41,24 +42,24 @@ public class AG {
 
 	}
 
+	public void elitismo(int elitismo) {
+		for (int i = 0; i < elitismo; i++) {
+			novaPopulacao.add(populacao.get(i));
+		}
+	}
+
 	// Selecao baseada em torneio
-	public void selecao(int elitismo, int qtd_ind_eliminados) {
+	public Individuo selecao() {
 		Individuo individuo1;
 		Individuo individuo2;
-		Collections.sort(populacao); // Forca os melhores individuos virem
-										// primeiro
-		for (int i = 0; i < qtd_ind_eliminados; i++) {
-			individuo1 = populacao.get(rand.nextInt(populacao.size() - elitismo - i) + elitismo);
-			individuo2 = populacao.get(rand.nextInt(populacao.size() - elitismo - i) + elitismo);
-			while (individuo1.equals(individuo2)) {
-				individuo1 = populacao.get(rand.nextInt(populacao.size() - elitismo - i) + elitismo);
-				individuo2 = populacao.get(rand.nextInt(populacao.size() - elitismo - i) + elitismo);
-			}
-			if (individuo1.aptidao <= individuo2.aptidao)
-				populacao.remove(individuo1);
-			else
-				populacao.remove(individuo2);
-		}
+		do {
+			individuo1 = populacao.get(rand.nextInt(populacao.size()));
+			individuo2 = populacao.get(rand.nextInt(populacao.size()));
+		} while ((individuo1.equals(individuo2)));
+		if (individuo1.aptidao <= individuo2.aptidao)
+			return individuo2;
+		else
+			return individuo1;
 	}
 
 	// Crossover
@@ -67,55 +68,52 @@ public class AG {
 		Individuo individuo2;
 		Individuo filho1;
 		Individuo filho2;
-		for (int i = 0; i < qtd_ind_resultantes; i++) {
+		for (int i = 0; i < qtd_ind_resultantes / 2; i++) {
 			do {
-				individuo1 = populacao.get(rand.nextInt(populacao.size()));
-				individuo2 = populacao.get(rand.nextInt(populacao.size()));
-				while (individuo1.equals(individuo2)) {
-					individuo1 = populacao.get(rand.nextInt(populacao.size()));
-					individuo2 = populacao.get(rand.nextInt(populacao.size()));
-				}
+				do {
+					individuo1 = selecao();
+					individuo2 = selecao();
+				} while ((individuo1.equals(individuo2)));
 				filho1 = new Individuo(problema.qtd_sacolas);
-//				filho1.cromossomos.add(deepCopy3(individuo2.cromossomos.get(0)));
-//				filho1.cromossomos.add(deepCopy3(individuo1.cromossomos.get(1)));
-//				filho1.cromossomos.add(deepCopy3(individuo2.cromossomos.get(2)));
-//				filho1.aptidao = aptidao(filho1);
+				// filho1.cromossomos.add(deepCopy3(individuo2.cromossomos.get(0)));
+				// filho1.cromossomos.add(deepCopy3(individuo1.cromossomos.get(1)));
+				// filho1.cromossomos.add(deepCopy3(individuo2.cromossomos.get(2)));
+				// filho1.aptidao = aptidao(filho1);
 				filho2 = new Individuo(problema.qtd_sacolas);
-//				filho2.cromossomos.add(deepCopy3(individuo1.cromossomos.get(0)));
-//				filho2.cromossomos.add(deepCopy3(individuo2.cromossomos.get(1)));
-//				filho2.cromossomos.add(deepCopy3(individuo1.cromossomos.get(2)));
-//				filho2.aptidao = aptidao(filho2);
-				
+				// filho2.cromossomos.add(deepCopy3(individuo1.cromossomos.get(0)));
+				// filho2.cromossomos.add(deepCopy3(individuo2.cromossomos.get(1)));
+				// filho2.cromossomos.add(deepCopy3(individuo1.cromossomos.get(2)));
+				// filho2.aptidao = aptidao(filho2);
+
 				// Crossover mais geral
 				for (int j = 0; j < problema.qtd_sacolas; j++) {
-					if (j%2 == 0)
+					if (j % 2 == 0)
 						filho1.cromossomos.add(deepCopy3(individuo2.cromossomos.get(j)));
 					else
 						filho1.cromossomos.add(deepCopy3(individuo1.cromossomos.get(j)));
 				}
 				filho1.aptidao = aptidao(filho1);
 				for (int j = 0; j < problema.qtd_sacolas; j++) {
-					if (j%2 == 0)
+					if (j % 2 == 0)
 						filho2.cromossomos.add(deepCopy3(individuo1.cromossomos.get(j)));
 					else
 						filho2.cromossomos.add(deepCopy3(individuo2.cromossomos.get(j)));
 				}
 				filho2.aptidao = aptidao(filho2);
-				
+
 			} while (!verificarIndividuo(filho1) && !verificarIndividuo(filho2));
 			validarIndividuo(filho1);
 			validarIndividuo(filho2);
-			populacao.add(filho1);
-			populacao.add(filho2);
+			novaPopulacao.add(filho1);
+			novaPopulacao.add(filho2);
 		}
-		Collections.sort(populacao);
 	}
 
 	public void mutacao(int qtd_ind_mutados) {
 		Individuo individuo;
 		int index;
 		for (int i = 0; i < qtd_ind_mutados; i++) {
-			individuo = populacao.get(rand.nextInt(populacao.size()));
+			individuo = selecao();
 			index = rand.nextInt(individuo.qtd_cromossomos);
 			individuo.genes.add(individuo.cromossomos.get(index).genes
 					.remove(rand.nextInt(individuo.cromossomos.get(index).genes.size())));
@@ -127,6 +125,7 @@ public class AG {
 						.add((individuo.genes.remove(rand.nextInt(individuo.genes.size()))));
 			}
 			individuo.aptidao = aptidao(individuo);
+			novaPopulacao.add(individuo);
 		}
 	}
 
@@ -134,9 +133,12 @@ public class AG {
 		Individuo[] melhores_individuos = new Individuo[qtd_individuos];
 		gerarPopulacao();
 		for (int i = 0; i < qtd_geracoes; i++) {
-			selecao(20, 200);
-			reroducao(100);
-			mutacao(100);
+			elitismo((int) (this.qtd_individuos * 0.1));
+			reroducao((int) (this.qtd_individuos * 0.6));
+			mutacao((int) (this.qtd_individuos * 0.3));
+			populacao = deepCopy4(novaPopulacao);
+			Collections.sort(populacao); // Forca os melhores individuos virem primeiro
+			novaPopulacao.clear();
 		}
 		for (int i = 0; i < qtd_individuos; i++)
 			melhores_individuos[i] = populacao.get(i);
@@ -214,8 +216,20 @@ public class AG {
 		return temp;
 	}
 
+	// Copia população
+	private LinkedList<Individuo> deepCopy4(LinkedList<Individuo> populacao) {
+		LinkedList<Individuo> temp = new LinkedList<>();
+		for (int i = 0; i < populacao.size(); i++) {
+			temp.add(new Individuo(new Integer(populacao.get(i).qtd_cromossomos)));
+			temp.get(i).cromossomos = deepCopy2(populacao.get(i).cromossomos);
+			temp.get(i).genes = deepCopy1(populacao.get(i).genes);
+			temp.get(i).aptidao = populacao.get(i).aptidao;
+		}
+		return temp;
+	}
+	
 	public void mostrarSolucao(int qtd_individuos) {
-		//Collections.shuffle(populacao);
+		// Collections.shuffle(populacao);
 		for (int i = 0; i < qtd_individuos; i++) {
 			System.out.println("APTIDAO DO INDIVIDUO = " + populacao.get(i).aptidao);
 			for (int j = 0; j < problema.qtd_sacolas; j++) {
@@ -232,7 +246,8 @@ public class AG {
 		/* Definindo parametros do problema */
 		int[] pesos_possiveis = { 1, 3, 5, 7, 11, 13, 17, 19 };
 		int[] capacidades = { 23, 29, 31, 37, 41, 43, 47 };
-		int qtd_sacolas = 3; // Observe que as solocas devem possuir capacidades diferentes
+		int qtd_sacolas = 3; // Observe que as solocas devem possuir capacidades
+								// diferentes
 		int qtd_itens = 30;
 		int realizacoes = 10;
 
@@ -244,8 +259,9 @@ public class AG {
 		// Executando realizacoes
 		for (int k = 0; k < realizacoes; k++) {
 			problema = new problemaDasSacolas(qtd_sacolas, qtd_itens, pesos_possiveis, capacidades);
-			ag = new AG(problema, 100, 1000);
-			System.out.println("########################### REALIZACAO " + k + " ###########################");
+			// gerações, individuos
+			ag = new AG(problema, 50, 100);
+			System.out.println("########################### REALIZACAO " + (k + 1) + " ###########################");
 			ag.executar(5); // Executa o AG e seleciona as 5 melhoes solucoes
 			ag.mostrarSolucao(2);
 			System.out.println("####################################################################");
