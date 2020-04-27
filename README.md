@@ -21,5 +21,5 @@ selecionada também aleatoriamente dentre os seguintes valores {23, 29, 31, 37, 
 Não pode haver sacolas com valores repetidos. Implemente uma solução que informe que
 itens devem ser colocados em cada sacola. Elabore um relatório no qual se descreve o(s)
 método(s) utilizado(s), a modelagem realizada para o problema e os resultados obtidos
-para 10 realizações diferentes da solução aplicada ao problema
+para 10 realizações diferentes da solução aplicada ao problema.
 
